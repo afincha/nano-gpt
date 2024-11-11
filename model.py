@@ -69,10 +69,8 @@ class FeedForward(nn.Module):
 class Block(nn.Module):
     """Transformer block: communication followed by computation"""
 
-    def __init__(self, n_embd, n_head):
+    def __init__(self, n_embd):
         super().__init__()
-        head_size = n_embd // n_head
-
         self.ln1 = nn.LayerNorm(n_embd, bias=False)
         self.attn = CausalSelfAttention()
         self.ln2 = nn.LayerNorm(n_embd, bias=False)
@@ -90,9 +88,7 @@ class GPT(nn.Module):
         super().__init__()
         self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
         self.position_embedding_table = nn.Embedding(block_size, n_embd)
-        self.blocks = nn.Sequential(
-            *[Block(n_embd, n_head=n_head) for _ in range(n_layer)]
-        )
+        self.blocks = nn.Sequential(*[Block(n_embd) for _ in range(n_layer)])
         self.ln_f = nn.LayerNorm(n_embd)
         self.lm_head = nn.Linear(n_embd, vocab_size)
 
@@ -137,10 +133,3 @@ class GPT(nn.Module):
             context = torch.cat((context, next_char), dim=1)
 
         return context
-
-
-# generate from the model
-# context = torch.zeros((1, 1), dtype=torch.long, device=device)
-# generated = model.generate(context, max_new_tokens=500)[0].tolist()
-# decoded = decode(generated)
-# print(decoded)
